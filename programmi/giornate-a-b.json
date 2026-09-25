@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Giornata A — Spinta + Verticale",
+    "exercises": [
+      { "name": "Riscaldamento spalle e polsi", "sets": 1, "seconds": 300, "rest": 0, "notes": "Stabilità spalla + mobilità spalle e polsi" },
+      { "name": "Push-up", "sets": 4, "reps": 8, "rest": 90, "notes": "Su rialzo se serve. Lontano dal cedimento: lascia 2-3 ripetizioni in canna" },
+      { "name": "Dip assistiti", "sets": 3, "reps": 8, "rest": 90, "notes": "Panca o piedi su step. Senza forzare la spalla" },
+      { "name": "Pike push-up", "sets": 3, "reps": 8, "rest": 90 },
+      { "name": "Scapolari alla sbarra", "sets": 2, "reps": 8, "rest": 60, "notes": "Tirata leggera, giusto per toccare la sbarra" },
+      { "name": "Dead hang", "sets": 2, "seconds": 20, "rest": 60, "notes": "Poco, senza affaticare" },
+      { "name": "Hollow body", "sets": 3, "seconds": 20, "rest": 45 },
+      { "name": "Defaticamento", "sets": 1, "seconds": 300, "rest": 0, "notes": "Allungamento + mobilità catena posteriore" }
+    ]
+  },
+  {
+    "name": "Giornata B — Tirata + Gambe",
+    "exercises": [
+      { "name": "Riscaldamento spalle", "sets": 1, "seconds": 300, "rest": 0, "notes": "Stabilità spalla" },
+      { "name": "Dead hang", "sets": 2, "seconds": 20, "rest": 60 },
+      { "name": "Scapolari alla sbarra", "sets": 2, "reps": 8, "rest": 60, "notes": "Attivazione della schiena" },
+      { "name": "Trazioni assistite con elastico", "sets": 4, "reps": 3, "rest": 120, "notes": "Esercizio principale: 4-5 serie da 3-5. Quando fai 5 ripetizioni pulite in tutte le serie, aggiungi la quinta serie o passa a un elastico più leggero" },
+      { "name": "Negative lente", "sets": 3, "reps": 3, "rest": 120, "notes": "Discesa in 5 secondi: coprono il tratto alto dove l'elastico non aiuta" },
+      { "name": "Australian row", "sets": 3, "reps": 10, "rest": 90, "notes": "10-12. Quando diventa facile abbassa la barra o alza i piedi" },
+      { "name": "Bulgarian split squat", "sets": 3, "reps": 8, "rest": 90, "notes": "Ripetizioni per gamba" },
+      { "name": "Ponte su una gamba", "sets": 3, "reps": 10, "rest": 60, "notes": "Ripetizioni per gamba" },
+      { "name": "Plank", "sets": 3, "seconds": 30, "rest": 45, "notes": "Solo se la spalla è ok" },
+      { "name": "Defaticamento", "sets": 1, "seconds": 300, "rest": 0, "notes": "Allungamento dorsali e ischiocrurali" }
+    ]
+  }
+]

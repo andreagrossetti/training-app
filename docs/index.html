@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Allenamento – Privacy</title>
+<style>
+  :root { --bg: #f4f5f7; --fg: #12151a; --muted: #5b6472; --accent: #ff4000; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0a0c0f; --fg: #f2f4f7; --muted: #98a2b3; } }
+  body { background: var(--bg); color: var(--fg); font: 17px/1.6 system-ui, sans-serif; margin: 0; padding: 32px 16px; }
+  main { max-width: 680px; margin: 0 auto; }
+  h1 { font-size: 2rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin-top: 2em; color: var(--accent); }
+  p.lead { color: var(--muted); margin-top: 0; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Allenamento</h1>
+  <p class="lead">A personal Android app for bodyweight workouts, GPS runs and HRV readings.
+    It isn't publicly distributed: only its author uses it.
+    Source code: <a href="https://github.com/andreagrossetti/training-app">github.com/andreagrossetti/training-app</a>.</p>
+
+  <h2>Privacy policy</h2>
+  <p>Last updated: 25 September 2026.</p>
+  <p>All of the app's data (programs, workout diary, run routes, HRV readings, settings) is stored on the phone.
+    The app has no server, uses no ads or analytics, and doesn't sell or share data with anyone.</p>
+
+  <h2>Google Drive</h2>
+  <p>If the user turns on the Drive backup, the app uploads a backup file every week to an "Allenamento"
+    folder in their Google Drive. It only uses the <code>drive.file</code> permission: it can see and change
+    only the files it created, not the rest of the Drive. The files stay in the user's account and can be
+    deleted at any time; access can be revoked at
+    <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</p>
+
+  <h2>Health Connect</h2>
+  <p>If the user turns it on, the app writes its workouts, runs (with distance and route), HRV and resting
+    heart rate to Health Connect, so they can be seen in other apps such as Samsung Health.
+    The app doesn't read any data from Health Connect.</p>
+
+  <h2>Contact</h2>
+  <p>Author: <a href="https://github.com/andreagrossetti">github.com/andreagrossetti</a>.</p>
+</main>
+</body>
+</html>

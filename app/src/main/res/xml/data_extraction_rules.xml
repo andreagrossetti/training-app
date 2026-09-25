@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+: back up the app's data to Google Drive and to a new phone, minus the map tile cache. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="mbgl-offline.db" />
+        <exclude domain="file" path="mbgl-offline.db-journal" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="mbgl-offline.db" />
+        <exclude domain="file" path="mbgl-offline.db-journal" />
+    </device-transfer>
+</data-extraction-rules>
