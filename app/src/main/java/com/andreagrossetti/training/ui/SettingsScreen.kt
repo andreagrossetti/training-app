@@ -79,6 +79,7 @@ fun SettingsScreen(app: TrainingApp, onClose: () -> Unit) {
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
     var pickingTime by remember { mutableStateOf(false) }
+    var pickingHrvTime by remember { mutableStateOf(false) }
     var restoreText by remember { mutableStateOf<String?>(null) }
     fun update(transform: (Settings) -> Settings) = app.settings.update(transform)
     fun message(text: String) = scope.launch { snackbar.showSnackbar(text) }
@@ -278,6 +279,18 @@ fun SettingsScreen(app: TrainingApp, onClose: () -> Unit) {
                 Panel(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         SwitchRow(
+                            title = "Promemoria misura HRV",
+                            subtitle = settings.hrvReminderMinutes?.let {
+                                "Ogni mattina alle %02d:%02d, se non hai ancora misurato".format(it / 60, it % 60)
+                            } ?: "Una notifica al risveglio per la misura col CorSense",
+                            checked = settings.hrvReminderMinutes != null,
+                            onChange = { on -> update { it.copy(hrvReminderMinutes = if (on) 7 * 60 else null) } },
+                        )
+                        if (settings.hrvReminderMinutes != null) {
+                            TextButton(onClick = { pickingHrvTime = true }, contentPadding = PaddingValues(0.dp)) { Text("Cambia orario") }
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        SwitchRow(
                             title = "Health Connect e Samsung Health",
                             subtitle = if (app.health.available) {
                                 "Allenamenti, corse con percorso, HRV e battito a riposo. Samsung Health li legge da Health Connect"
@@ -381,6 +394,22 @@ fun SettingsScreen(app: TrainingApp, onClose: () -> Unit) {
                 }
             }
         }
+    }
+
+    if (pickingHrvTime) {
+        val current = settings.hrvReminderMinutes ?: (7 * 60)
+        val state = rememberTimePickerState(current / 60, current % 60, is24Hour = true)
+        AlertDialog(
+            onDismissRequest = { pickingHrvTime = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    update { it.copy(hrvReminderMinutes = state.hour * 60 + state.minute) }
+                    pickingHrvTime = false
+                }) { Text("OK") }
+            },
+            dismissButton = { TextButton(onClick = { pickingHrvTime = false }) { Text("Annulla") } },
+            text = { TimePicker(state) },
+        )
     }
 
     if (pickingTime) {

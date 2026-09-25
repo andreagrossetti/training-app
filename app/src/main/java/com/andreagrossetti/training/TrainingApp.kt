@@ -10,6 +10,7 @@ import com.andreagrossetti.training.data.LogRepository
 import com.andreagrossetti.training.data.ProgramRepository
 import com.andreagrossetti.training.data.SettingsRepository
 import com.andreagrossetti.training.data.bestEfforts
+import com.andreagrossetti.training.data.date
 import com.andreagrossetti.training.drive.DriveBackup
 import com.andreagrossetti.training.health.HealthSync
 import com.andreagrossetti.training.hrv.HrvSession
@@ -91,6 +92,12 @@ class TrainingApp : Application() {
             combine(log.entries, settings.settings, repository.programs) { _, _, _ -> }.collect {
                 TrainingWidget.updateAll(this@TrainingApp)
                 Reminders.schedule(this@TrainingApp)
+            }
+        }
+        // A reading taken (e.g. without tapping the notification) clears the morning reminder.
+        MainScope().launch {
+            hrv.measurements.collect { list ->
+                if (list.any { it.date() == java.time.LocalDate.now() }) Reminders.cancelHrvNotification(this@TrainingApp)
             }
         }
         MainScope().launch {

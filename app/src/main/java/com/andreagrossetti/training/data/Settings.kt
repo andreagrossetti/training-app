@@ -54,6 +54,8 @@ data class Settings(
     val lastInterval: IntervalPlan? = null,
     /** Mirror workouts, runs and HRV readings into Health Connect (and so Samsung Health). */
     val healthConnect: Boolean = false,
+    /** Morning reminder to take the HRV reading, in minutes after midnight; null = off. */
+    val hrvReminderMinutes: Int? = 7 * 60,
     /** Upload the full backup to Google Drive every week. */
     val driveBackup: Boolean = false,
 )

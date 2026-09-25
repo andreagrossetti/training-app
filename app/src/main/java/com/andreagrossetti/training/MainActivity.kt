@@ -50,6 +50,7 @@ import com.andreagrossetti.training.ai.LocalAi
 import com.andreagrossetti.training.ai.ProgramGenerator
 import com.andreagrossetti.training.data.Program
 import com.andreagrossetti.training.data.programJson
+import com.andreagrossetti.training.reminder.Reminders
 import com.andreagrossetti.training.ui.AiProgramSheet
 import com.andreagrossetti.training.ui.EditorScreen
 import com.andreagrossetti.training.ui.HrvScreen
@@ -136,6 +137,7 @@ private fun AppRoot(app: TrainingApp, action: Intent?, onActionHandled: () -> Un
                 tab = Tab.RUN
                 autoStartRun = true
             }
+            Reminders.ACTION_OPEN_HRV -> inHrv = true
             TrainingWidget.ACTION_START_PROGRAM -> {
                 action.getStringExtra(TrainingWidget.EXTRA_PROGRAM_ID)?.let(app.repository::get)?.let(app.engine::start)
             }
