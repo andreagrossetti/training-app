@@ -56,7 +56,7 @@ import androidx.health.connect.client.PermissionController
 import androidx.activity.result.IntentSenderRequest
 import com.andreagrossetti.training.drive.DriveConsentNeeded
 import com.andreagrossetti.training.health.HealthSync
-import com.google.android.gms.auth.api.identity.Identity
+import android.util.Log
 import com.andreagrossetti.training.workout.RemoteButton
 import com.andreagrossetti.training.data.KmCue
 import com.andreagrossetti.training.data.PLAN_RUN
@@ -110,15 +110,18 @@ fun SettingsScreen(app: TrainingApp, onClose: () -> Unit) {
             .onFailure { if (it !is DriveConsentNeeded) message("Caricamento fallito: ${it.message}") }
         uploading = false
     }
-    val driveConsent = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-        val granted = runCatching {
-            Identity.getAuthorizationClient(context).getAuthorizationResultFromIntent(result.data).accessToken != null
-        }.getOrDefault(false)
-        if (granted) {
-            update { it.copy(driveBackup = true) }
-            driveUpload()
-        } else {
-            message("Accesso a Drive non concesso")
+    // Back from Google's consent screen: ask again rather than parsing its result, which isn't always filled in.
+    val driveConsent = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {
+        scope.launch {
+            val granted = runCatching { !app.drive.authorize().hasResolution() }
+                .onFailure { Log.w("DriveBackup", "authorize after consent", it) }
+                .getOrDefault(false)
+            if (granted) {
+                update { it.copy(driveBackup = true) }
+                driveUpload()
+            } else {
+                message("Accesso a Drive non concesso")
+            }
         }
     }
     // Enabling (or a failed upload) goes through Google's consent screen first when needed.
