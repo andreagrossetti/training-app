@@ -66,9 +66,10 @@ object Reminders {
         return next.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
 
-    fun notifyHrvIfNotMeasured(context: Context) {
+    /** [force] shows it even if today's reading is done (the "Prova notifica" button). */
+    fun notifyHrvIfNotMeasured(context: Context, force: Boolean = false) {
         val app = context.applicationContext as TrainingApp
-        if (app.hrv.measurements.value.any { it.date() == LocalDate.now() }) return
+        if (!force && app.hrv.measurements.value.any { it.date() == LocalDate.now() }) return
         if (!canNotify(context)) return
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel(HRV_CHANNEL_ID, "Promemoria misura HRV", NotificationManager.IMPORTANCE_DEFAULT))

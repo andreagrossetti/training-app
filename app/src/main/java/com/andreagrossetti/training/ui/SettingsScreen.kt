@@ -56,6 +56,7 @@ import androidx.health.connect.client.PermissionController
 import androidx.activity.result.IntentSenderRequest
 import com.andreagrossetti.training.drive.DriveConsentNeeded
 import com.andreagrossetti.training.health.HealthSync
+import com.andreagrossetti.training.reminder.Reminders
 import android.util.Log
 import com.andreagrossetti.training.workout.RemoteButton
 import com.andreagrossetti.training.data.KmCue
@@ -287,7 +288,13 @@ fun SettingsScreen(app: TrainingApp, onClose: () -> Unit) {
                             onChange = { on -> update { it.copy(hrvReminderMinutes = if (on) 7 * 60 else null) } },
                         )
                         if (settings.hrvReminderMinutes != null) {
-                            TextButton(onClick = { pickingHrvTime = true }, contentPadding = PaddingValues(0.dp)) { Text("Cambia orario") }
+                            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                TextButton(onClick = { pickingHrvTime = true }, contentPadding = PaddingValues(0.dp)) { Text("Cambia orario") }
+                                TextButton(
+                                    onClick = { Reminders.notifyHrvIfNotMeasured(context, force = true) },
+                                    contentPadding = PaddingValues(0.dp),
+                                ) { Text("Prova notifica") }
+                            }
                         }
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         SwitchRow(
