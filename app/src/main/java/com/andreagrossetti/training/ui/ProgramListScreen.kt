@@ -205,7 +205,7 @@ fun ProgramListScreen(
                     }
                 }
             }
-            item { ReadinessCard(hrv, plannedTitle = today?.takeIf { !it.done }?.title, onOpen = onHrv) }
+            item { ReadinessCard(hrv, log, plannedTitle = today?.takeIf { !it.done }?.title, onOpen = onHrv) }
             today?.let { plan ->
                 item {
                     TodayCard(plan, onStart = { plan.program?.let(onStart) ?: onRun() })

@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import com.andreagrossetti.training.data.HrvMeasurement
+import com.andreagrossetti.training.data.HrvPosition
 import com.andreagrossetti.training.data.HrvRepository
 import com.andreagrossetti.training.data.RR_GAP
 import com.andreagrossetti.training.data.cleanRr
@@ -48,6 +49,10 @@ class HrvSession(context: Context, private val repository: HrvRepository, privat
     private val sensor = HeartRateSensor(context, ::onPacket, ::onDisconnect)
     val sensorStatus: StateFlow<SensorStatus> = sensor.status
 
+    private val _liveHr = MutableStateFlow<List<Pair<Float, Float>>>(emptyList())
+    /** Beat-by-beat heart rate for the live chart: seconds since the finger went in to bpm. */
+    val liveHr: StateFlow<List<Pair<Float, Float>>> = _liveHr.asStateFlow()
+
     private val _phase = MutableStateFlow<HrvPhase>(HrvPhase.Idle)
     val phase: StateFlow<HrvPhase> = _phase.asStateFlow()
 
@@ -57,6 +62,7 @@ class HrvSession(context: Context, private val repository: HrvRepository, privat
     /** Last stale packet or lost stretch, to warn about the signal while it happens. */
     private var lastBadAt = 0L
     private val rr = mutableListOf<Int>()
+    private var position = HrvPosition.LYING
 
     private val ticker = object : Runnable {
         override fun run() {
@@ -68,9 +74,11 @@ class HrvSession(context: Context, private val repository: HrvRepository, privat
     private val active: Boolean
         get() = _phase.value.let { it !is HrvPhase.Idle && it !is HrvPhase.Done }
 
-    fun start() {
+    fun start(position: HrvPosition) {
         if (active) return
+        this.position = position
         rr.clear()
+        _liveHr.value = emptyList()
         firstBeatAt = 0L
         recordStartedAt = 0L
         lastPacketAt = 0L
@@ -97,11 +105,22 @@ class HrvSession(context: Context, private val repository: HrvRepository, privat
         }
     }
 
+    /** Edits the finished reading (sleep, mood, notes), stored straight away if it's already saved. */
+    fun edit(transform: (HrvMeasurement) -> HrvMeasurement) {
+        val done = _phase.value as? HrvPhase.Done ?: return
+        val m = transform(done.measurement ?: return)
+        if (done.saved) repository.save(m)
+        _phase.value = done.copy(measurement = m)
+    }
+
     private fun onPacket(packet: HeartRatePacket) {
         if (!active) return
         if (packet.contact == false) {
             // Finger out: before recording starts, the settling time starts over.
-            if (recordStartedAt == 0L) firstBeatAt = 0L
+            if (recordStartedAt == 0L) {
+                firstBeatAt = 0L
+                _liveHr.value = emptyList()
+            }
             gap()
             return
         }
@@ -123,6 +142,10 @@ class HrvSession(context: Context, private val repository: HrvRepository, privat
         lastPacketAt = now
         if (firstBeatAt == 0L) firstBeatAt = now
         if (recordStartedAt != 0L) rr += packet.rrMs
+        // The last beat of the packet is now, the earlier ones one interval back each.
+        var t = now
+        val beats = packet.rrMs.reversed().map { v -> ((t - firstBeatAt) / 1000f to 60_000f / v).also { t -= v } }
+        _liveHr.value = _liveHr.value + beats.reversed().filter { it.first >= 0 && it.second in 30f..200f }
         tick()
     }
 
@@ -162,10 +185,11 @@ class HrvSession(context: Context, private val repository: HrvRepository, privat
     private fun recording(elapsed: Int, pairs: Int, rmssd: Double?, poor: Boolean) =
         HrvPhase.Recording(elapsed, RECORD_S, MAX_RECORD_S, pairs, TARGET_PAIRS, rmssd, poor)
 
+
     private fun finish() {
         main.removeCallbacks(ticker)
         sensor.stop()
-        val m = hrvMeasurement(recordStartedAt, System.currentTimeMillis() - recordStartedAt, rr.toList())
+        val m = hrvMeasurement(recordStartedAt, System.currentTimeMillis() - recordStartedAt, rr.toList(), position)
         val reliable = m?.reliable == true
         if (reliable) repository.add(m!!)
         cues.finish()
@@ -174,10 +198,11 @@ class HrvSession(context: Context, private val repository: HrvRepository, privat
 
     companion object {
         const val STABILIZE_S = 30
-        const val RECORD_S = 90
+        /** Two minutes, as Elite HRV: at a low resting heart rate 90 s is only some 65 beats. */
+        const val RECORD_S = 120
         const val MAX_RECORD_S = 180
-        /** Usable successive beats to collect: about a minute of clean signal. */
-        const val TARGET_PAIRS = 60
+        /** Usable successive beats to collect: about two minutes at a low resting heart rate. */
+        const val TARGET_PAIRS = 80
         private const val POOR_SIGNAL_MS = 5_000
         private const val GAP_SLACK_MS = 700
     }

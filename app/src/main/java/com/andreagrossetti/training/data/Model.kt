@@ -19,6 +19,8 @@ data class Exercise(
     val seconds: Int? = null,
     val rest: Int = 60,
     val notes: String = "",
+    /** Link to a video showing how it's done (e.g. YouTube); blank = none. */
+    val video: String = "",
     // UI-only identity, regenerated on every load.
     @Transient val key: String = newId(),
 ) {
@@ -52,9 +54,15 @@ data class Program(
     val exercises: List<Exercise> = emptyList(),
     val rounds: Int? = null,
     val roundRest: Int = 60,
+    /** Past edits, oldest first. */
+    val history: List<ProgramRevision> = emptyList(),
 ) {
     val circuit: Boolean get() = rounds != null
 }
+
+/** One saved edit of a program: what changed (see [programChanges]) and, optionally, why. */
+@Serializable
+data class ProgramRevision(val timestamp: Long, val changes: List<String>, val note: String = "")
 
 /** One set to perform: [round] is the set number, or the round of a circuit (0-based). */
 data class Step(val exerciseIndex: Int, val round: Int, val restAfter: Int, val readyBefore: Boolean)

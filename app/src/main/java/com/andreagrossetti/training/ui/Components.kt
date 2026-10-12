@@ -275,12 +275,14 @@ fun Program.estimatedMinutes(): Int {
     return ((seconds + 59) / 60).coerceAtLeast(1)
 }
 
-/** Five-step perceived effort selector; tapping the selected value clears it. */
+/** Five-step perceived effort (or any 1–5 scale) selector; tapping the selected value clears it. */
 @Composable
 fun EffortPicker(
     effort: Int?,
     onChange: (Int?) -> Unit,
     modifier: Modifier = Modifier,
+    labels: List<String> = effortLabels,
+    placeholder: String = "Com'è andata?",
     color: Color = MaterialTheme.colorScheme.primary,
     idle: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
     onColor: Color = MaterialTheme.colorScheme.onPrimary,
@@ -306,7 +308,7 @@ fun EffortPicker(
             }
         }
         Text(
-            effort?.let { effortLabels[it - 1] } ?: "Com'è andata?",
+            effort?.let { labels[it - 1] } ?: placeholder,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 6.dp),
         )
@@ -440,5 +442,15 @@ fun YearHeatmap(counts: Map<LocalDate, Int>, today: LocalDate) {
                 }
             }
         }
+    }
+}
+
+/** Opens the exercise's video, or a YouTube search for it when it has none. */
+fun openExerciseVideo(context: android.content.Context, exercise: com.andreagrossetti.training.data.Exercise) {
+    val url = exercise.video.trim().ifBlank {
+        "https://www.youtube.com/results?search_query=" + android.net.Uri.encode("${exercise.name} esecuzione corretta")
+    }
+    runCatching {
+        context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)))
     }
 }

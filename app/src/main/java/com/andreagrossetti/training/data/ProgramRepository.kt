@@ -24,10 +24,16 @@ class ProgramRepository(context: Context) {
 
     fun get(id: String): Program? = _programs.value.find { it.id == id }
 
-    fun save(program: Program) {
+    /** Stores [program]; an edit of an existing one is added to its history, with [note] as the reason. */
+    fun save(program: Program, note: String = "") {
         val list = _programs.value
         val index = list.indexOfFirst { it.id == program.id }
-        update(if (index >= 0) list.toMutableList().apply { set(index, program) } else list + program)
+        if (index < 0) return update(list + program)
+        val old = list[index]
+        val changes = programChanges(old, program)
+        val history = if (changes.isEmpty()) old.history
+        else old.history + ProgramRevision(System.currentTimeMillis(), changes, note.trim())
+        update(list.toMutableList().apply { set(index, program.copy(history = history)) })
     }
 
     fun delete(id: String) = update(_programs.value.filterNot { it.id == id })

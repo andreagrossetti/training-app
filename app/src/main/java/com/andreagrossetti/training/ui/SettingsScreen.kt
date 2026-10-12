@@ -189,7 +189,7 @@ fun SettingsScreen(app: TrainingApp, onClose: () -> Unit) {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         SwitchRow(
                             title = "Voce durante gli allenamenti",
-                            subtitle = "Annuncia il prossimo esercizio e le ripetizioni",
+                            subtitle = "Annuncia l'ultima serie, il prossimo esercizio e le ripetizioni",
                             checked = settings.workoutVoice,
                             onChange = { on -> update { it.copy(workoutVoice = on) } },
                         )

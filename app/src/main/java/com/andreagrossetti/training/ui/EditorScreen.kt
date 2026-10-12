@@ -1,5 +1,9 @@
 package com.andreagrossetti.training.ui
 
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +17,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -50,6 +55,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.andreagrossetti.training.data.Exercise
 import com.andreagrossetti.training.data.Program
+import com.andreagrossetti.training.data.ProgramRevision
 import com.andreagrossetti.training.data.programJson
 import com.andreagrossetti.training.data.steps
 
@@ -61,7 +67,8 @@ private val ProgramSaver = Saver<Program, String>(
 @Composable
 fun EditorScreen(
     initial: Program?,
-    onSave: (Program) -> Unit,
+    /** The edited program and, for an existing one, why it was changed (may be blank). */
+    onSave: (Program, String) -> Unit,
     onClose: () -> Unit,
     /** False when [initial] is an unsaved draft rather than a stored program. */
     existing: Boolean = initial != null,
@@ -71,6 +78,7 @@ fun EditorScreen(
     var program by rememberSaveable(stateSaver = ProgramSaver) {
         mutableStateOf(initial ?: Program(name = "", exercises = listOf(Exercise(name = "", reps = 10))))
     }
+    var note by rememberSaveable { mutableStateOf("") }
 
     fun setExercises(transform: MutableList<Exercise>.() -> Unit) {
         program = program.copy(exercises = program.exercises.toMutableList().apply(transform))
@@ -85,7 +93,7 @@ fun EditorScreen(
             FormTopBar(
                 title = if (existing) "Modifica programma" else "Nuovo programma",
                 onClose = onClose,
-                onSave = { onSave(program.copy(name = program.name.ifBlank { "Programma" })) },
+                onSave = { onSave(program.copy(name = program.name.ifBlank { "Programma" }), note) },
                 saveEnabled = valid,
             )
         },
@@ -138,6 +146,46 @@ fun EditorScreen(
                     Text("Aggiungi esercizio", Modifier.padding(start = 6.dp))
                 }
             }
+            if (existing) {
+                item {
+                    AppTextField(
+                        value = note,
+                        onValueChange = { note = it },
+                        label = "Perché lo modifichi? (facoltativo)",
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = false,
+                    )
+                }
+            }
+            if (program.history.isNotEmpty()) {
+                item {
+                    Text(
+                        "MODIFICHE",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp, start = 4.dp),
+                    )
+                }
+                items(program.history.asReversed(), key = { it.timestamp }) { RevisionCard(it) }
+            }
+        }
+    }
+}
+
+private val revisionFormat = java.time.format.DateTimeFormatter.ofPattern("EEE d MMM yyyy · HH:mm", java.util.Locale.ITALIAN)
+
+@Composable
+private fun RevisionCard(revision: ProgramRevision) {
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    Panel(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                revisionFormat.format(java.time.Instant.ofEpochMilli(revision.timestamp).atZone(java.time.ZoneId.systemDefault()))
+                    .replaceFirstChar { it.titlecase(java.util.Locale.ITALIAN) },
+                style = MaterialTheme.typography.titleSmall,
+            )
+            if (revision.note.isNotBlank()) Text(revision.note, style = MaterialTheme.typography.bodyMedium)
+            revision.changes.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall, color = muted) }
         }
     }
 }
@@ -255,6 +303,21 @@ private fun ExerciseCard(
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 )
+                AppTextField(
+                    value = exercise.video,
+                    onValueChange = { onChange(exercise.copy(video = it.trim())) },
+                    label = "Link video (opzionale)",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                val context = LocalContext.current
+                TextButton(onClick = { openExerciseVideo(context, exercise) }, enabled = exercise.name.isNotBlank()) {
+                    Icon(Icons.Rounded.PlayCircle, null, Modifier.size(18.dp))
+                    Text(
+                        if (exercise.video.isBlank()) "Cerca su YouTube e incolla qui il link" else "Guarda il video",
+                        Modifier.padding(start = 6.dp),
+                    )
+                }
             }
         }
     }

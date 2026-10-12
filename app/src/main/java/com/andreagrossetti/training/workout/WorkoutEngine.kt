@@ -321,8 +321,15 @@ class WorkoutEngine(
     }
 
     private fun enterWork() {
-        val ex = _state.value?.exercise ?: return
+        val s = _state.value ?: return
+        val ex = s.exercise
         enterPhase(Phase.WORK, if (ex.timed) ex.amount * 1000L else 0)
+        // Heads-up that this is the last effort of the exercise (or the last round of the circuit).
+        val rounds = s.program.rounds
+        when {
+            rounds != null -> if (rounds > 1 && s.step.round == rounds - 1 && s.step.exerciseIndex == 0) say("Ultimo giro")
+            ex.sets > 1 && s.step.round == ex.sets - 1 -> say("Ultima serie")
+        }
     }
 
     private fun completeSet() {

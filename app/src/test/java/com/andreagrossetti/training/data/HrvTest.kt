@@ -71,9 +71,9 @@ class HrvTest {
     @Test
     fun calibratesUntilEnoughMornings() {
         val today = LocalDate.of(2026, 9, 25)
-        val list = (0..3).map { reading(today.minusDays(it.toLong()), 50.0) }
+        val list = (0..2).map { reading(today.minusDays(it.toLong()), 50.0) }
         val r = readiness(list, today) as ReadinessResult.Calibrating
-        assertEquals(3, r.days)
+        assertEquals(2, r.days)
     }
 
     @Test
@@ -92,6 +92,82 @@ class HrvTest {
     fun unreliableReadingsAreIgnored() {
         val today = LocalDate.of(2026, 9, 25)
         assertNull(readiness(listOf(reading(today, 50.0).copy(artifacts = 0.4)), today))
+    }
+
+    @Test
+    fun baselineOnlyUsesTheSamePosition() {
+        val today = LocalDate.of(2026, 9, 25)
+        // Two weeks lying down around 80 ms; a first seated morning at 40 ms has no seated baseline yet.
+        val lying = (1..14).map { reading(today.minusDays(it.toLong()), if (it % 2 == 0) 75.0 else 85.0) }
+        val seated = reading(today, 40.0).copy(position = HrvPosition.SITTING)
+        assertTrue(readiness(lying + seated, today) is ReadinessResult.Calibrating)
+    }
+
+    @Test
+    fun timeDomainMetrics() {
+        val rr = (1..60).flatMap { listOf(1000, 1060) }
+        val m = hrvMetrics(rr)!!
+        assertEquals(60.0, m.rmssd, 1e-9)
+        assertEquals(1.0, m.pnn50, 1e-9)
+        assertEquals(1030.0, m.meanRr, 1e-9)
+        assertEquals(60_000.0 / 1060, m.minHr, 1e-9)
+        assertEquals(60.0, m.maxHr, 1e-9)
+        assertEquals(30.1, m.sdnn, 0.1)
+    }
+
+    @Test
+    fun breathingAtFifteenPerMinuteShowsUpAsHf() {
+        // Intervals swinging ±50 ms at 0.25 Hz for 2 minutes: variance 50²/2 = 1250 ms², all in HF.
+        val rr = mutableListOf<Int>()
+        var t = 0.0
+        while (t < 120) {
+            val v = (1000 + 50 * kotlin.math.sin(2 * Math.PI * 0.25 * t)).toInt()
+            rr += v
+            t += v / 1000.0
+        }
+        val s = hrvMetrics(rr)!!.spectrum!!
+        assertEquals(0.25, s.hfPeak, 0.01)
+        assertEquals(1250.0, s.hf, 150.0)
+        assertTrue(s.lf < s.hf / 10)
+    }
+
+    @Test
+    fun shortReadingHasNoSpectrum() {
+        assertNull(hrvMetrics(List(50) { 1000 + (it % 2) * 30 })!!.spectrum)
+    }
+
+    @Test
+    fun provisionalVerdictFromThreeMornings() {
+        // The real 26–29 Sep mornings: 83, 97, 106 ms around 44.6 bpm, then 62 ms at 53 bpm.
+        val today = LocalDate.of(2026, 9, 29)
+        val past = listOf(83.4, 97.5, 106.2).mapIndexed { i, v -> reading(today.minusDays(3L - i), v).copy(meanHr = 44.6) }
+        val r = readiness(past + reading(today, 62.3).copy(meanHr = 53.3), today) as ReadinessResult.Ready
+        assertTrue(r.provisional)
+        assertEquals(Readiness.YELLOW, r.readiness)
+        assertTrue(r.highHr)
+        val advice = dailyAdvice(r, emptyList(), today)
+        assertEquals(Readiness.YELLOW, advice.readiness)
+        assertTrue(advice.reasons.first().startsWith("HRV 62 ms: 35% sotto"))
+    }
+
+    @Test
+    fun badSleepTurnsGreenIntoYellow() {
+        val today = LocalDate.of(2026, 9, 29)
+        val past = (1..3).map { reading(today.minusDays(it.toLong()), 80.0) }
+        val r = readiness(past + reading(today, 82.0).copy(sleep = 1), today) as ReadinessResult.Ready
+        assertEquals(Readiness.GREEN, r.readiness)
+        assertEquals(Readiness.YELLOW, dailyAdvice(r, emptyList(), today).readiness)
+    }
+
+    @Test
+    fun repeatedMorningReadingsAreAveraged() {
+        val today = LocalDate.of(2026, 9, 27)
+        val first = reading(today, 65.0)
+        val second = first.copy(id = "b", timestamp = first.timestamp + 8 * 60_000, rmssd = 97.5)
+        val evening = first.copy(id = "c", timestamp = first.timestamp + 10 * 3_600_000, rmssd = 30.0)
+        val day = dailyHrv(listOf(first, second, evening)).single()
+        assertEquals(exp((kotlin.math.ln(65.0) + kotlin.math.ln(97.5)) / 2), day.rmssd, 1e-6)
+        assertEquals(first.id, day.id)
     }
 
     private fun reading(date: LocalDate, rmssd: Double) = HrvMeasurement(

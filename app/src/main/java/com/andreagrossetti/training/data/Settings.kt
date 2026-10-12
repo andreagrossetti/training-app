@@ -58,6 +58,10 @@ data class Settings(
     val hrvReminderMinutes: Int? = 7 * 60,
     /** Upload the full backup to Google Drive every week. */
     val driveBackup: Boolean = false,
+    /** Show the paced breathing guide during HRV readings (off: the flower just pulses with the heart). */
+    val hrvBreathGuide: Boolean = false,
+    /** Pace of the breathing guide, breaths a minute. */
+    val hrvBreathPace: Int = 8,
 )
 
 class SettingsRepository(context: Context) {

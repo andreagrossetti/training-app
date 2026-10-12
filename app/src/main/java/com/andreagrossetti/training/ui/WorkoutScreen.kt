@@ -1,5 +1,8 @@
 package com.andreagrossetti.training.ui
 
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -179,6 +182,11 @@ fun WorkoutScreen(
                     SetDots(state)
                     val notes = state.exercise.notes
                     if (notes.isNotBlank()) Notes(notes, showNotes, onToggle = { showNotes = !showNotes })
+                    val context = LocalContext.current
+                    TextButton(onClick = { openExerciseVideo(context, state.exercise) }) {
+                        Icon(Icons.Rounded.PlayCircle, null, Modifier.size(18.dp))
+                        Text(if (state.exercise.video.isBlank()) "Cerca video" else "Video", Modifier.padding(start = 6.dp))
+                    }
                 }
 
                 Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {

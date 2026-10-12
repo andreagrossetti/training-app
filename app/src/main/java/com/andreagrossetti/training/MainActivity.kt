@@ -197,12 +197,12 @@ private fun AppRoot(app: TrainingApp, action: Intent?, onActionHandled: () -> Un
                     initial = stored ?: drafted,
                     existing = stored != null,
                     notice = if (drafted != null) "Creato con l'AI: controlla esercizi, serie e recuperi prima di salvare." else null,
-                    onSave = { app.repository.save(it); close() },
+                    onSave = { program, note -> app.repository.save(program, note); close() },
                     onClose = close,
                 )
             }
             is Screen.Progress -> app.repository.get(target.id)?.let { program ->
-                ProgressScreen(program, app.log, onUpdate = app.repository::save, onClose = { progressOf = null })
+                ProgressScreen(program, app.log, onUpdate = { app.repository.save(it, "Progressione: obiettivo raggiunto in tutte le serie") }, onClose = { progressOf = null })
             }
             Screen.AddLog -> {
                 BackHandler { addingLog = false }
@@ -213,7 +213,7 @@ private fun AppRoot(app: TrainingApp, action: Intent?, onActionHandled: () -> Un
                 )
             }
             Screen.Settings -> SettingsScreen(app, onClose = { inSettings = false })
-            Screen.Hrv -> HrvScreen(app.hrvSession, app.hrv, onClose = { inHrv = false })
+            Screen.Hrv -> HrvScreen(app.hrvSession, app.hrv, app.settings, app.log, onClose = { inHrv = false })
             Screen.Tabs -> Tabs(
                 app = app,
                 tab = tab,
