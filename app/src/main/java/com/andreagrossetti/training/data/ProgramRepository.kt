@@ -36,6 +36,16 @@ class ProgramRepository(context: Context) {
         update(list.toMutableList().apply { set(index, program.copy(history = history)) })
     }
 
+    /** Clears the one-off [Exercise.news] of the [done] exercises of a program, outside its history. */
+    fun clearNews(programId: String, done: Set<String>) {
+        val list = _programs.value
+        if (list.none { p -> p.id == programId && p.exercises.any { it.name in done && it.news.isNotBlank() } }) return
+        update(list.map { p ->
+            if (p.id != programId) p
+            else p.copy(exercises = p.exercises.map { if (it.name in done) it.copy(news = "") else it })
+        })
+    }
+
     fun delete(id: String) = update(_programs.value.filterNot { it.id == id })
 
     /** Imports a single program, an array of programs or `{"programs": [...]}`. Returns the count. */

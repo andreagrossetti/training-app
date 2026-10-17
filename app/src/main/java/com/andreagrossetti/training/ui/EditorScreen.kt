@@ -297,6 +297,13 @@ private fun ExerciseCard(
                 Stepper(if (circuit) "Recupero dopo" else "Recupero", exercise.rest, { onChange(exercise.copy(rest = it)) }, step = 15, suffix = "s")
 
                 AppTextField(
+                    value = exercise.news,
+                    onValueChange = { onChange(exercise.copy(news = it)) },
+                    label = "Novità per il prossimo allenamento (opzionale)",
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                )
+                AppTextField(
                     value = exercise.notes,
                     onValueChange = { onChange(exercise.copy(notes = it)) },
                     label = "Note (opzionale)",

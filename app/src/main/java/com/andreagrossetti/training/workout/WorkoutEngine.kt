@@ -415,6 +415,7 @@ class WorkoutEngine(
         } else {
             say("Prossimo esercizio: ${ex.name}, ${ex.sets} serie da ${ex.amountSpoken()}")
         }
+        if (ex.news.isNotBlank()) say("Novità: ${ex.news}")
     }
 
     private fun say(text: String) {

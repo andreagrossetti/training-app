@@ -21,6 +21,11 @@ data class Exercise(
     val notes: String = "",
     /** Link to a video showing how it's done (e.g. YouTube); blank = none. */
     val video: String = "",
+    /**
+     * One-off heads-up for the next workout (e.g. "togli un elastico"): spoken and shown when
+     * the exercise comes up, then cleared once a set of it is logged.
+     */
+    val news: String = "",
     // UI-only identity, regenerated on every load.
     @Transient val key: String = newId(),
 ) {

@@ -83,6 +83,7 @@ class TrainingApp : Application() {
                 sets = workout.results,
             )
             log.add(entry)
+            repository.clearNews(workout.program.id, workout.results.map { it.exercise }.toSet())
             entry.id
         }
         tracker = RunTracker(this, cues, voice, kmCue = { settings.value.kmCue })

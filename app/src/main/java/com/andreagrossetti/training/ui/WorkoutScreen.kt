@@ -180,6 +180,8 @@ fun WorkoutScreen(
                     )
                     Spacer(Modifier.height(8.dp))
                     SetDots(state)
+                    val news = state.exercise.news
+                    if (news.isNotBlank()) News(news)
                     val notes = state.exercise.notes
                     if (notes.isNotBlank()) Notes(notes, showNotes, onToggle = { showNotes = !showNotes })
                     val context = LocalContext.current
@@ -387,6 +389,20 @@ private fun SetDots(state: WorkoutState) {
         style = MaterialTheme.typography.bodyMedium,
         color = Color.White.copy(alpha = 0.8f),
         modifier = Modifier.padding(top = 6.dp),
+    )
+}
+
+/** The exercise's one-off heads-up for this workout, always visible. */
+@Composable
+private fun News(news: String) {
+    Text(
+        "Novità: $news",
+        style = MaterialTheme.typography.bodyLarge,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.35f), MaterialTheme.shapes.medium)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
     )
 }
 
